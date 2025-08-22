@@ -3,9 +3,12 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { getbatch } from "../../../Backend/Controller/Admincontroller.js";
+import Course from "../../../Backend/Model/Coursemodel.js";
+
 
 function Courselist() {
+
+  
   const [courses, setCourses] = useState([]);
   const [courseName, setCourseName] = useState("");
   const [coursetogglestatus, setcourseStatus] = useState(0);
@@ -16,6 +19,12 @@ function Courselist() {
   const [batches, setBatches] = useState([]);
   const [batchName, setBatchName] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
+
+  const [searchQuery,setsearchQuery] =useState("")
+
+//   const filteredCourses = courses.filter((course) =>
+//     course.course.toLowerCase().includes(searchQuery.toLowerCase())
+// )
 
   const handleAddbatch = async () => {
     if (!batchName.trim()) {
@@ -48,7 +57,7 @@ function Courselist() {
         showConfirmButton: false,
       });
 
-      // update batches state immediately
+   
       setBatches((prev) => [...prev, response.data]);
 
       setBatchName("");
@@ -93,7 +102,7 @@ function Courselist() {
       .catch((err) => {
         console.error("Error fetching courses", err);
       });
-  }, [coursetogglestatus, getbatch]);
+  }, [coursetogglestatus]);
 
   const handleAddCourse = async () => {
     if (!courseName.trim()) {
@@ -159,12 +168,31 @@ function Courselist() {
             <h2 className="text-2xl font-bold text-violet-600 font-serif">
               Course List
             </h2>
+            <div className="relative w-64 ">
+          <input
+         
+            // value={searchQuery}
+            //   onChange={(e) => setsearchQuery(e.target.value)}
+            type="text"
+            placeholder="Search..."
+            className="w-full pl-9 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-violet-500 drop-shadow-2xl "
+          />
+          <svg
+            className="absolute left-3 top-2.5 w-5 h-5 text-gray-500"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M16 10a6 6 0 11-12 0 6 6 0 0112 0z" />
+          </svg>
+        </div>
           </div>
+         
 
           <div className="h-16 w-full bg-gray-100 flex items-center justify-between p-1 rounded-2xl mb-6">
             <input
-              value={courseName}
-              onChange={(e) => setCourseName(e.target.value)}
+              
               className="w-[30%] h-11 bg-white border rounded-2xl p-2"
               placeholder=" Course"
               type="text"
@@ -192,11 +220,13 @@ function Courselist() {
                 {courses.map((course, index) => (
                   <tr
                     key={course._id}
+
                     className="border-b bg-gray-100 hover:bg-white  transform transition-all duration-500 hover:scale-99"
                   >
                     <td className="p-3">{index + 1}</td>
                     <td className="p-3">{course.name}</td>
-
+                    
+                     {/* {Course.course} */}
                     <td className="p-3">
                       <span
                         className={`px-3 py-1 rounded-full text-sm font-medium ${

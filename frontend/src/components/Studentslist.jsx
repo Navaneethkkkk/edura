@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 import axios from "axios";
 
 import Swal from "sweetalert2";
-import { editstudent } from "../../../Backend/Controller/Admincontroller.js";
+
 
 function Studentslist() {
   const [showModal, setShowModal] = useState(false);
@@ -13,6 +13,10 @@ function Studentslist() {
   const [selectedstudent, setselectedstudent] = useState({});
   const [viewModal, setviewModal] = useState(false)
   const [selectedStudent,setSelectedStudent]=useState("")
+  
+  const [showPassword,setShowPassword]= useState(false)
+
+  const [viewStudent,setviewStudent]= useState(null)
 
   const [name, setname] = useState("");
 
@@ -146,8 +150,8 @@ function Studentslist() {
             setEditModal(false);
             seteditstudent(newcount);
 
-            /// ✅ clear selection
-            Swal.fire("Saved!", "", "success"); // ✅ confirmation
+            
+            Swal.fire("Saved!", "", "success"); 
           } else {
             Swal.fire("Error!", "Failed to update student", "error");
           }
@@ -170,20 +174,25 @@ function Studentslist() {
     setbatch(student.batch);
     setadmission(student.admission);
     setpassword(student.password || "");
-    setselectedstudent(student); 
+    setSelectedStudent(student); 
   };
 
     
-    const handleview = async () => {
-      try {
-        const response = await axios.get("http://localhost:3000/admin/getstudent");
-        setSelectedStudent(response.data);
-        setviewModal(true);
-      } catch (err) {
-        console.error("Error fetching student details", err);
-        Swal.fire("Error!", "Failed to fetch student details", "error");
-      }
-    };
+//   const handleview = async (id) => {
+//   try {
+//     const response = await axios.get(`http://localhost:3000/admin/getstudent/${id}`);
+//     
+//   } catch (err) {
+//     console.error("Error fetching student details", err);
+//     // Swal.fire("Error!", "Failed to fetch student details", "error");
+//   }
+// };
+  
+
+const handleview = (student) =>{
+  setviewStudent(student); // single student object
+    setviewModal(true);
+}
 
   
   return (
@@ -196,6 +205,7 @@ function Studentslist() {
 
           <div className="flex-1 p-5 ">
             <div className="flex items-center justify-between mb-6">
+              
               <div className="w-[15%] bg-violet-600 py-3 px-4 rounded-xl shadow-md">
                 <h2 className="text-white font-serif text-md font-semibold text-center ">
                   Students List
@@ -348,7 +358,7 @@ function Studentslist() {
                       <td className="px-3 py-2 align-middle flex justify-center items-center gap-2 h-full">
                     
                         <button
-                          onClick={() => handleview(student._id)}
+                          onClick={() => handleview(student)}
                           className=" text-white px-3 py-1 rounded hover:bg-blue-950"
                         >
                           👁 View
@@ -383,22 +393,57 @@ function Studentslist() {
           </div>
         </div>
       </div>
+      {showPassword &&(
+        <div>
+          {showPassword && (
+  <div className="flex items-center justify-center min-h-screen bg-gray-100 fixed inset-0 z-50">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleview(viewStudent);  
+        setShowPassword(true);       
+      }}
+      className="bg-white shadow-lg rounded-2xl p-6 w-full max-w-sm"
+    >
+      <h2 className="text-xl font-bold mb-4 text-center">Enter Password</h2>
 
-      {viewModal && selectedstudent && (
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setp(e.target.value)}
+        className="w-full border rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        required
+      />
+
+      <button
+        type="submit"
+        className="w-full bg-blue-500 text-white py-2 rounded-lg font-semibold hover:bg-blue-600 transition duration-200"
+      >
+        OK
+      </button>
+    </form>
+  </div>
+)}
+
+        </div>
+      )}
+      {viewModal &&  viewStudent &&  (
         <div className="fixed inset-0 bg-black/35 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-96">
+          <div  className="bg-white rounded-lg shadow-lg p-6 w-96">
             <h2 className="text-xl font-bold mb-4">Student Details</h2>
-            <p><strong>Name:</strong> {}</p>
-            <p><strong>Email:</strong> {}</p>
-            <p><strong>Phone:</strong> {}</p>
-            <p><strong>Course:</strong> {}</p>
-            <p><strong>Batch:</strong> {}</p>
-            <p><strong>Admission No:</strong> {}</p>
-            <p><strong>Password:</strong> {}</p>
+            <p><strong>Name:</strong> {viewStudent.name}</p>
+            <p><strong>Email:</strong> {viewStudent.email}</p>
+            <p><strong>Phone:</strong> {viewStudent.phone}</p>
+            <p><strong>Course:</strong> {viewStudent.course}</p>
+            <p><strong>Batch:</strong> {viewStudent.batch}</p>
+            <p><strong>Admission No:</strong> {viewStudent.admission}</p>
+
+          
 
             <div className="flex justify-end mt-4">
               <button
-                onClick={() => setviewModal(false)}
+                onClick={() => setviewStudent(false)}
                 className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
               >
                 Close

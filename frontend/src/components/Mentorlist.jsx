@@ -6,10 +6,14 @@ import Swal from 'sweetalert2';
 
 
 function Mentorlist() {
+
+  
+
   const [mentors, setMentors] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
   const [editModal, setmentorEditModal] = useState (false)
+  const [courses, setCourses] = useState([]);
   
   const [selectedMentor,setSelectedMentor] = useState()
   const [editmentor,seteditmentor] = useState(0)
@@ -25,6 +29,29 @@ function Mentorlist() {
   const [course, setCourse] = useState('');
   const [password,setpassword] = useState('')
   const [status, setStatus] = useState('Active');
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [serverOtp, setServerOtp] = useState("");
+
+  const handleSendOtp = async () => {
+    try {
+      const res = await axios.post("http://localhost:3000/admin/send-otp", { email });
+      setServerOtp(res.data.otp); // for testing, remove in production!
+      setShowOtpModal(true);
+    } catch (err) {
+      console.error("Error sending OTP", err);
+      alert("Failed to send OTP");
+    }
+  };
+
+  const handleVerifyOtp = () => {
+    if (otp == serverOtp) {
+      alert("✅ Email Verified Successfully!");
+      setShowOtpModal(false);
+    } else {
+      alert("❌ Invalid OTP");
+    }
+  };
 
   const handleMentorToggleStatus = async (mentor) =>{
   try {
@@ -65,7 +92,15 @@ function Mentorlist() {
 
   useEffect(() => {
     fetchMentors();
-  }, [editmentor,statustogle]);
+    if (showModal) {
+      axios.get("http://localhost:3000/admin/getcourses")
+        .then((res) => {
+          console.log(res.data);
+          setCourses(res.data)}
+        )
+        .catch((err) => console.error("Error fetching courses:", err));
+    }
+  }, [editmentor,statustogle,showModal]);
 
   const handleeditMentor = async (e) =>{
     e.preventDefault();
@@ -164,6 +199,24 @@ if(result.isConfirmed){
             </button>
           </div>
 
+        
+        <div className="relative w-64 ">
+          <input
+            type="text"
+            placeholder="Search..."
+            className="w-full pl-9 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-violet-500 drop-shadow-2xl "
+          />
+          <svg
+            className="absolute left-3 top-2.5 w-5 h-5 text-gray-500"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M16 10a6 6 0 11-12 0 6 6 0 0112 0z" />
+          </svg>
+        </div>
+
           {/* Modal */}
           {showModal && (
             <div className="fixed inset-0  bg-black/40  bg-opacity-30 flex justify-center items-center z-50">
@@ -180,13 +233,20 @@ if(result.isConfirmed){
                       required
                     />
                     <input
-                      type="email"
-                      placeholder="Email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full border px-3 py-2 rounded-md"
-                      required
-                    />
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="w-full border px-3 py-2 rounded-md"
+        required
+      />
+      <button
+        type="button"
+        onClick={handleSendOtp}
+        className="bg-blue-600 text-white px-3 py-2 rounded-md"
+      >
+        Verify
+      </button>
                     <input
                       type="tel"
                       placeholder="Phone Number"
@@ -195,14 +255,19 @@ if(result.isConfirmed){
                       className="w-full border px-3 py-2 rounded-md"
                       required
                     />
-                    <input
-                      type="text"
-                      placeholder="Course"
-                      value={course}
-                      onChange={(e) => setCourse(e.target.value)}
-                      className="w-full border px-3 py-2 rounded-md"
-                      required
-                    />
+                    <select
+                value={course}
+                onChange={(e) => setCourse(e.target.value)}
+                className="w-full border px-3 py-2 rounded-md"
+                required
+              >
+                <option value="">Select Course</option>
+                {courses.map((c) => (
+                  <option key={c._id} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
                     <input
                       type="text"
                       placeholder="Password"
@@ -361,6 +426,35 @@ if(result.isConfirmed){
           </div>
         </div>
       </div>
+        {/*OTP Modal */}
+       {showOtpModal && (
+        <div className="fixed z-50 inset-0 bg-black/40 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h2 className="text-xl font-bold mb-4 text-center">Enter OTP</h2>
+            <input
+              type="text"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              className="w-full border px-3 py-2 rounded-md mb-4"
+              placeholder="Enter OTP"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowOtpModal(false)}
+                className="px-3 py-2 bg-gray-400 text-white rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleVerifyOtp}
+                className="px-3 py-2 bg-green-600 text-white rounded-md"
+              >
+                Verify
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </>
   );

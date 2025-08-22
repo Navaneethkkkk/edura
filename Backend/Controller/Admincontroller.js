@@ -2,6 +2,10 @@ import User from "../Model/Usermodal.js";
 import Mentor from "../Model/Mentormodel.js";
 import Course from "../Model/Coursemodel.js";
 import Batch from "../Model/Batchmodel.js";
+import nodemailer from "nodemailer"
+import dotenv from "dotenv"
+import OTP from "../Model/Otpmodel.js";
+dotenv.config()
 
 const adminemail="admin@gmail.com"
  const adminpass="admin123"
@@ -18,6 +22,9 @@ const adminemail="admin@gmail.com"
     }
 
  }
+
+
+
  const getbatch = async (req, res) => {
   try {
     const { courseName } = req.body;
@@ -234,16 +241,7 @@ export
     }
   };
 
- const getstudent = async (req,res) =>{
-  try {
-    const students = await User.find({}, );
-    return res.status(200).json(students);
-  } catch (error) {
-    console.error("Error fetching students:", error);
-    return res.status(500).json({ message: "Server error" });
-  }
-};
- 
+  
   
 
 
@@ -290,11 +288,57 @@ export
     res.status(500).send({ success: false, error: err.message })
    }
   }
+
+
+
+// Controller function
+const sendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000); // 6-digit OTP
+
+await OTP.findOneAndUpdate(
+  {email},
+  {otp,createdAT:new Date()},
+  {upsert:true,new:true}
+)
+
+    // configure nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.PASSWORD, // App password
+  },
+});
+
+    await transporter.sendMail({
+      from: `"My App" <${process.env.EMAIL}>`,
+      to: email,
+      subject: "Your OTP Code",
+      text: `Your OTP is ${otp}`,
+    });
+
+    // ⛔ never send OTP to frontend in production!
+    res.status(200).json({ success: true, message: "OTP sent successfully", otp });
+  } catch (err) {
+    console.error("Error sending OTP:", err);
+    res.status(500).json({ success: false, message: "Failed to send OTP" });
+  }
+};
+
+
+
   
 
  
 
- export {checkadmin,editstudent
+ export {checkadmin,editstudent,sendOtp
   ,
-  togglestudentstatus,editmentor,handleMentorToggleStatus,handleCourseToggleStatus,addbatch,getbatch,getstudent
+  togglestudentstatus,editmentor,handleMentorToggleStatus,handleCourseToggleStatus,addbatch,getbatch,
  }
